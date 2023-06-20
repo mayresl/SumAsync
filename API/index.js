@@ -8,7 +8,7 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
  
 app.get('/GetResult', (req, res) => {
-  res.send('Hello World!')
+  res.send(JSON.stringify('Hello World!'))
 })
  
 app.post('/CalcAsync', (req, res) => {

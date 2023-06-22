@@ -2,13 +2,13 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
-import { CalculatorComponent } from './calculator/calculator.component';
+import { SumComponent } from './sum/sum.component';
 
 import { HttpClientModule } from '@angular/common/http'; 
 
 @NgModule({
   declarations: [
-    CalculatorComponent
+    SumComponent
   ],
   imports: [
     BrowserModule,
@@ -16,6 +16,6 @@ import { HttpClientModule } from '@angular/common/http';
     AppRoutingModule
   ],
   providers: [],
-  bootstrap: [CalculatorComponent]
+  bootstrap: [SumComponent]
 })
 export class AppModule { }

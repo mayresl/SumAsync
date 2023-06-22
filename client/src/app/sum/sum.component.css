@@ -1,0 +1,22 @@
+table {
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid black;
+}
+
+.form-container {
+    display: flex;
+    gap: 6px;
+}
+
+.form-container button {
+    height: 100%;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}

@@ -1,0 +1,37 @@
+<h1>Sum Async</h1>
+
+<form  class="form-container">
+  <div class="form">
+    <label for="fnumber">N1: <input type="number" id="fnumber" name="fnumber" #number1></label>
+    <label for="snumber">N2: <input type="number" id="snumber" name="snumber" #number2></label>  
+  </div>
+  <div>
+    <button type="button" (click)="sum(number1.value, number2.value)">Sum</button>
+  </div> 
+</form>
+<p *ngIf="formInvalid">Please, inform numbers.</p>
+
+<br>
+<hr> 
+<br>
+
+<table>
+  <thead>
+    <tr>
+      <th>Id</th>
+      <th>Status</th>
+      <th>Number 1</th>
+      <th>Number 2</th>
+      <th>Result</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let o of operations">
+      <td>{{ o._id }}</td>
+      <td>{{ o.status }}</td>
+      <td>{{ o.number1 }}</td>
+      <td>{{ o.number2 }}</td>
+      <td>{{ o.result }}</td>
+    </tr>
+  </tbody>
+</table>

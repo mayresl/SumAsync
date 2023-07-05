@@ -1,7 +1,9 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const {MongoClient} = require('mongodb');
+var amqp = require('amqplib/callback_api');
  
+const uri = "mongodb://root:example@127.0.0.1:27017/"
 const app = express()
 const port = 5000;
  
@@ -23,7 +25,8 @@ app.post('/CalcAsync', async (req, res) => {
     doc.status = "pending"
     doc.result = null
     try {
-      await insertSum(doc)
+      var id = await insertSum(doc)
+      await queueSum(id)
       res.send(JSON.stringify("Sum added to database"))
     }
     catch(e) {
@@ -37,23 +40,23 @@ app.listen(port, () => {
 
 
 async function insertSum(document) {
-  const uri = "mongodb://127.0.0.1:27017/"
   const client = new MongoClient(uri);
+  var result = ""
   try {
     await client.connect();
     const db = client.db("operationsDB");
     const collection = db.collection("sums");
-    const result = await collection.insertOne(document);
+    result = await collection.insertOne(document);
   } catch (e) {
       console.error(e);
   }
   finally {
     setTimeout(() => {client.close()}, 1500)
   }
+  return result
 }
 
 async function getSumOperations() {
-  const uri = "mongodb://127.0.0.1:27017/"
   const client = new MongoClient(uri);
   var data = []
   try {
@@ -68,4 +71,40 @@ async function getSumOperations() {
   }
 
   return data
+}
+
+async function queueSum(id) {
+  try {
+    amqp.connect('amqp://localhost', function(error0, connection) {
+      if (error0) {
+          throw error0;
+      }
+      console.log("passou error0")
+      connection.createChannel(function(error1, channel) {
+          if (error1) {
+              throw error1;
+          }
+
+          console.log("passou error1")
+          var queue = 'sums';
+          console.log(id)
+
+          channel.assertQueue(queue, {
+              durable: false
+          });
+          var msg = JSON.stringify(id.insertedId)
+          console.log(msg)
+          channel.sendToQueue(queue, Buffer.from(msg));
+
+          console.log(" [x] Sent %s", id);
+
+          setTimeout(() => {
+            connection.close()
+            process.exit(0)
+          }, 500)
+      });    
+    });
+  } catch (e) {
+      console.error(e);
+  }
 }

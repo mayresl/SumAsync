@@ -50,7 +50,7 @@ namespace WorkerRabbitMQConsumer
         private void ConsumerReceived(
             object sender, BasicDeliverEventArgs e)
         {
-            var msg = Encoding.UTF8.GetString(e.Body.ToArray());
+            var msg = Encoding.UTF8.GetString(e.Body.ToArray()).Replace("\"", "");
             _logger.LogInformation($"{DateTimeOffset.Now} - New message: {msg}");
             ProcessMessage(msg);
         }
@@ -61,7 +61,8 @@ namespace WorkerRabbitMQConsumer
             var database = client.GetDatabase("operationsDB");
             var sumsCollection = database.GetCollection<Sum>("sums");
 
-            Expression<Func<Sum, bool>> filter = x => x.Id.Equals(ObjectId.Parse(message));
+            var id = new ObjectId(message);
+            Expression<Func<Sum, bool>> filter = x => x.Id.Equals(id);
             var operation = sumsCollection.Find(filter).FirstOrDefault();
 
             if (operation != null) 
@@ -69,14 +70,15 @@ namespace WorkerRabbitMQConsumer
                 try
                 {
                     operation.Result = operation.Number1 + operation.Number2;
-                    operation.Status = "done";
-                    var result = sumsCollection.ReplaceOne(filter, operation);
-                    _logger.LogInformation($"{DateTime.Now} - Result of operation {message} = {result}");
+                    operation.Status = "done";                    
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogInformation($"{DateTime.Now} - {ex.StackTrace}");
+                    _logger.LogInformation($"{DateTime.Now} - Error - {ex.StackTrace}");
                     operation.Status = "error";
+                }
+                finally
+                {
                     var result = sumsCollection.ReplaceOne(filter, operation);
                     _logger.LogInformation($"{DateTime.Now} - Result of operation {message} = {result}");
                 }

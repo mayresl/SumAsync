@@ -10,7 +10,7 @@ namespace WorkerRabbitMQConsumer.Entities
 {
     internal class Sum
     {
-        [BsonId()]
+        [BsonId]
         public ObjectId Id { get; set; }
 
         [BsonElement("number1")]
@@ -26,6 +26,6 @@ namespace WorkerRabbitMQConsumer.Entities
         public string? Status { get; set; }
 
         [BsonElement("result")]
-        public int Result { get; set; }
+        public int? Result { get; set; }
     }
 }

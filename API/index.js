@@ -26,8 +26,9 @@ app.post('/CalcAsync', async (req, res) => {
     doc.result = null
     try {
       var id = await insertSum(doc)
-      await queueSum(id)
-      res.send(JSON.stringify("Sum added to database"))
+      var msg = JSON.stringify(id.insertedId)
+      await queueSum(msg)
+      //res.send(JSON.stringify("Sum added to database"))
     }
     catch(e) {
       res.send(JSON.stringify(e))
@@ -79,28 +80,19 @@ async function queueSum(id) {
       if (error0) {
           throw error0;
       }
-      console.log("passou error0")
       connection.createChannel(function(error1, channel) {
           if (error1) {
               throw error1;
           }
 
-          console.log("passou error1")
           var queue = 'sums';
-          console.log(id)
-
           channel.assertQueue(queue, {
               durable: false
           });
-          var msg = JSON.stringify(id.insertedId)
-          console.log(msg)
-          channel.sendToQueue(queue, Buffer.from(msg));
-
-          console.log(" [x] Sent %s", id);
+          channel.sendToQueue(queue, Buffer.from(id));
 
           setTimeout(() => {
             connection.close()
-            process.exit(0)
           }, 500)
       });    
     });

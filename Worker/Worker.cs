@@ -11,7 +11,7 @@ namespace WorkerRabbitMQConsumer
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
-        private readonly string _queue = "sums";
+        private readonly string _queue = "sumsQueue";
         private readonly string _url = "amqp://localhost";
 
         public Worker(ILogger<Worker> logger)
@@ -29,15 +29,22 @@ namespace WorkerRabbitMQConsumer
             using var channel = connection.CreateModel();
 
             channel.QueueDeclare(queue: _queue,
-                                durable: false,
+                                durable: true,
                                 exclusive: false,
                                 autoDelete: false,
                                 arguments: null);
+            //This tells RabbitMQ not to give more than one message to a worker at a time:
+            channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
 
             var consumer = new EventingBasicConsumer(channel);
-            consumer.Received += ConsumerReceived;
+            consumer.Received += (sender, e) =>
+            {
+
+                ConsumerReceived(sender, e);
+                channel.BasicAck(deliveryTag: e.DeliveryTag, multiple: false);
+            };
             channel.BasicConsume(queue: _queue,
-                autoAck: true,
+                autoAck: false, //"automatic acknowledgement mode is off so we can manually sendacknowledgment from the worker
                 consumer: consumer);
 
             while (!stoppingToken.IsCancellationRequested)
@@ -48,7 +55,7 @@ namespace WorkerRabbitMQConsumer
         }
 
         private void ConsumerReceived(
-            object sender, BasicDeliverEventArgs e)
+            object? sender, BasicDeliverEventArgs e)
         {
             var msg = Encoding.UTF8.GetString(e.Body.ToArray()).Replace("\"", "");
             _logger.LogInformation($"{DateTimeOffset.Now} - New message: {msg}");

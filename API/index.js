@@ -85,9 +85,9 @@ async function queueSum(id) {
               throw error1;
           }
 
-          var queue = 'sums';
+          var queue = 'sumsQueue';
           channel.assertQueue(queue, {
-              durable: false
+              durable: true //making sure queue will survive a RabbitMQ node restart
           });
           channel.sendToQueue(queue, Buffer.from(id));
 
